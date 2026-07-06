@@ -1,0 +1,34 @@
+# Environments
+.env
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# Eval outputs (keep folder, ignore generated runs)
+eval/results/run_*.json
+eval/results/run_*.md
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Node / Next.js
+node_modules/
+.next/
+frontend/.env.local
+
