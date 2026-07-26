@@ -82,28 +82,32 @@ export default function AttemptTimeline({
         <p className="muted">No attempts yet. Run debug to see the timeline.</p>
       ) : (
         <div className="attemptList">
-          {history.map((entry, idx) => (
-            <details key={idx} className={cardClass(entry)} open>
-              <summary>
-                <div className="attemptLeft">
-                  <span className="attemptTitle">Attempt {entry.attempt ?? idx + 1}</span>
-                  <span className={badgeClass(entry)}>{badgeLabel(entry)}</span>
+          {[...history].reverse().map((entry, reversedIdx) => {
+            const isFinal = reversedIdx === 0;
+            return (
+              <details key={entry.attempt ?? reversedIdx} className={cardClass(entry)} open={isFinal}>
+                <summary>
+                  <div className="attemptLeft">
+                    <span className="attemptTitle">Attempt {entry.attempt ?? history.length - reversedIdx}</span>
+                    {isFinal ? <span className="attemptBadge attemptBadge--final">FINAL</span> : null}
+                    <span className={badgeClass(entry)}>{badgeLabel(entry)}</span>
+                  </div>
+                  <span className="attemptMeta">{((entry.duration_ms ?? 0) / 1000).toFixed(1)}s</span>
+                </summary>
+                <div className="attemptBody">
+                  {entry.error ? (
+                    <>
+                      <p className="attemptErrorLine">{lastErrorLine(entry.error)}</p>
+                      <div className="attemptSub">TRACEBACK</div>
+                      <pre className="attemptErrorBlock">{entry.error}</pre>
+                    </>
+                  ) : null}
+                  <div className="attemptSub">{entry.llm_output ? "PROPOSED PATCH" : "CODE"}</div>
+                  {entry.llm_output ? patchBody(entry.llm_output) : <pre>{entry.code ?? ""}</pre>}
                 </div>
-                <span className="attemptMeta">{((entry.duration_ms ?? 0) / 1000).toFixed(1)}s</span>
-              </summary>
-              <div className="attemptBody">
-                {entry.error ? (
-                  <>
-                    <p className="attemptErrorLine">{lastErrorLine(entry.error)}</p>
-                    <div className="attemptSub">TRACEBACK</div>
-                    <pre className="attemptErrorBlock">{entry.error}</pre>
-                  </>
-                ) : null}
-                <div className="attemptSub">{entry.llm_output ? "PROPOSED PATCH" : "CODE"}</div>
-                {entry.llm_output ? patchBody(entry.llm_output) : <pre>{entry.code ?? ""}</pre>}
-              </div>
-            </details>
-          ))}
+              </details>
+            );
+          })}
         </div>
       )}
     </>

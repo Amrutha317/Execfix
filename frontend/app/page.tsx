@@ -137,8 +137,17 @@ export default function DebugPage() {
           </div>
         </section>
 
-        <section className="card" style={{ minHeight: 640, display: "flex", flexDirection: "column", gap: 14 }}>
-          {result ? <ResultSummary result={result} /> : null}
+        <section className="card resultsCard" style={{ minHeight: 640, display: "flex", flexDirection: "column", gap: 14 }}>
+          <div className="panelHeader" style={{ marginBottom: 0 }}>
+            <h2 className="panelTitle">RESULT</h2>
+          </div>
+          {result ? (
+            <ResultSummary result={result} />
+          ) : (
+            <p className="muted" style={{ margin: 0, fontSize: 13 }}>
+              Run debug to see the outcome here.
+            </p>
+          )}
           <div style={{ flex: 1, minHeight: 0 }}>
             <AttemptTimeline history={result?.history ?? []} maxAttempts={maxAttempts} />
           </div>

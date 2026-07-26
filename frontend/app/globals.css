@@ -56,6 +56,10 @@ a {
   padding: 16px;
 }
 
+.resultsCard {
+  border-top: 2px solid var(--gh-accent);
+}
+
 .row {
   display: flex;
   gap: 12px;
@@ -398,6 +402,9 @@ pre {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  max-height: 520px;
+  overflow-y: auto;
+  padding-right: 2px;
 }
 
 details.attemptCard {
@@ -488,6 +495,12 @@ details.attemptCard > summary::-webkit-details-marker {
   border-color: #8b949e44;
   background: #8b949e22;
   color: var(--gh-muted);
+}
+
+.attemptBadge--final {
+  border-color: #58a6ff44;
+  background: #58a6ff22;
+  color: var(--gh-accent);
 }
 
 .attemptMeta {

@@ -22,15 +22,15 @@ export default function ResultSummary({ result }: { result: DebugResponse }) {
           <p className="muted" style={{ margin: "0 0 6px", fontSize: 12 }}>
             Final error
           </p>
-          <pre className="error" style={{ marginBottom: 12 }}>
+          <pre className="error" style={{ marginBottom: 0 }}>
             {result.final_error}
           </pre>
         </>
-      ) : null}
-      <p className="muted" style={{ margin: "0 0 6px", fontSize: 12 }}>
-        Final code
-      </p>
-      <pre>{result.final_code}</pre>
+      ) : (
+        <p className="muted" style={{ margin: 0, fontSize: 12 }}>
+          See the timeline below for the final code.
+        </p>
+      )}
     </div>
   );
 }
