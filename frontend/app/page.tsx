@@ -7,6 +7,8 @@ import AttemptTimeline from "@/components/attempt-timeline";
 import CodeEditor from "@/components/code-editor";
 import ResultSummary from "@/components/result-summary";
 import { runDebug } from "@/lib/api";
+import { addHistoryRun } from "@/lib/history";
+import { getSettings } from "@/lib/settings";
 import type { DebugResponse } from "@/lib/types";
 
 const DEFAULT_CODE = `def get_item(items, index):
@@ -33,6 +35,10 @@ export default function DebugPage() {
 
   useEffect(() => {
     setActionsHost(document.getElementById("topbar-actions"));
+    const settings = getSettings();
+    setModel(settings.defaultModel);
+    setMaxAttempts(settings.defaultMaxAttempts);
+    setTimeoutSeconds(settings.defaultTimeout);
   }, []);
 
   const elapsedLabel = useMemo(() => {
@@ -59,6 +65,14 @@ export default function DebugPage() {
         model: model.trim() || undefined
       });
       setResult(response);
+      addHistoryRun({
+        code,
+        tests: tests.trim() || undefined,
+        model: model.trim() || "default",
+        maxAttempts,
+        timeout,
+        result: response
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
