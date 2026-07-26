@@ -421,6 +421,39 @@ pre {
   font-family: var(--font-code), "JetBrains Mono", "Fira Code", Consolas, monospace !important;
 }
 
+.examplePill {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  border-radius: 10px;
+  border: 0.5px solid var(--gh-accent);
+  color: var(--gh-accent);
+  background: #58a6ff1a;
+  white-space: nowrap;
+}
+
+.runningCard {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--gh-text);
+  padding: 10px 12px;
+  border: 0.5px solid var(--gh-border);
+  border-radius: var(--radius-card);
+  background: var(--gh-canvas);
+}
+
+.runningCard__pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gh-orange);
+  flex-shrink: 0;
+  animation: runBtnPulse 1.2s ease-in-out infinite;
+}
+
 .optionalPill {
   font-size: 10px;
   font-weight: 600;

@@ -7,15 +7,10 @@ import AttemptTimeline from "@/components/attempt-timeline";
 import CodeEditor from "@/components/code-editor";
 import ResultSummary from "@/components/result-summary";
 import { runDebug } from "@/lib/api";
+import { EXAMPLE_CODE, EXAMPLE_RESULT } from "@/lib/example-run";
 import { addHistoryRun } from "@/lib/history";
 import { getSettings } from "@/lib/settings";
 import type { DebugResponse } from "@/lib/types";
-
-const DEFAULT_CODE = `def get_item(items, index):
-    return items[index]
-
-get_item([1, 2, 3], 10)
-`;
 
 function totalElapsedMs(result: DebugResponse | null) {
   if (!result?.history?.length) return null;
@@ -23,7 +18,7 @@ function totalElapsedMs(result: DebugResponse | null) {
 }
 
 export default function DebugPage() {
-  const [code, setCode] = useState(DEFAULT_CODE);
+  const [code, setCode] = useState(EXAMPLE_CODE);
   const [tests, setTests] = useState("");
   const [maxAttempts, setMaxAttempts] = useState(3);
   const [timeout, setTimeoutSeconds] = useState(10);
@@ -33,6 +28,7 @@ export default function DebugPage() {
   const [result, setResult] = useState<DebugResponse | null>(null);
   const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [runningElapsedMs, setRunningElapsedMs] = useState(0);
 
   useEffect(() => {
     setActionsHost(document.getElementById("topbar-actions"));
@@ -41,6 +37,14 @@ export default function DebugPage() {
     setMaxAttempts(settings.defaultMaxAttempts);
     setTimeoutSeconds(settings.defaultTimeout);
   }, []);
+
+  useEffect(() => {
+    if (!loading) return;
+    const start = Date.now();
+    setRunningElapsedMs(0);
+    const id = setInterval(() => setRunningElapsedMs(Date.now() - start), 200);
+    return () => clearInterval(id);
+  }, [loading]);
 
   const elapsedLabel = useMemo(() => {
     const ms = totalElapsedMs(result);
@@ -116,19 +120,8 @@ export default function DebugPage() {
                 <button type="button" className="pillBtn pillBtn--active" disabled aria-pressed="true">
                   Python
                 </button>
-                <button
-                  className="pillBtn"
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      const text = await navigator.clipboard.readText();
-                      if (text) setCode(text);
-                    } catch {
-                      /* clipboard permission */
-                    }
-                  }}
-                >
-                  Paste
+                <button className="pillBtn" type="button" onClick={() => setCode(EXAMPLE_CODE)}>
+                  Load example
                 </button>
                 <button className="pillBtn" type="button" onClick={() => setCode("")}>
                   Clear
@@ -161,15 +154,36 @@ export default function DebugPage() {
           <div className="panelHeader" style={{ marginBottom: 0 }}>
             <h2 className="panelTitle">RESULT</h2>
           </div>
-          {result ? (
+          {loading ? (
+            <div className="runningCard">
+              <span className="runningCard__pulse" aria-hidden />
+              Running attempt... {(runningElapsedMs / 1000).toFixed(1)}s
+            </div>
+          ) : result ? (
             <ResultSummary result={result} />
           ) : (
-            <p className="muted" style={{ margin: 0, fontSize: 13 }}>
-              Run debug to see the outcome here.
-            </p>
+            <>
+              <span className="examplePill" style={{ marginBottom: 6, display: "inline-block", width: "fit-content" }}>
+                EXAMPLE
+              </span>
+              <ResultSummary result={EXAMPLE_RESULT} />
+            </>
           )}
           <div style={{ flex: 1, minHeight: 0 }}>
-            <AttemptTimeline history={result?.history ?? []} maxAttempts={maxAttempts} />
+            {loading ? (
+              <>
+                <div className="panelHeader" style={{ marginTop: 0 }}>
+                  <h2 className="panelTitle">ATTEMPT TIMELINE</h2>
+                </div>
+                <p className="muted">Waiting for the first attempt to finish...</p>
+              </>
+            ) : (
+              <AttemptTimeline
+                history={(result ?? EXAMPLE_RESULT).history}
+                maxAttempts={maxAttempts}
+                isExample={!result}
+              />
+            )}
           </div>
           {error ? (
             <p className="error" style={{ margin: 0, fontSize: 14 }}>

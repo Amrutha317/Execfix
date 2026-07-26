@@ -58,10 +58,12 @@ function badgeLabel(entry: HistoryEntry) {
 
 export default function AttemptTimeline({
   history,
-  maxAttempts
+  maxAttempts,
+  isExample = false
 }: {
   history: HistoryEntry[];
   maxAttempts: number;
+  isExample?: boolean;
 }) {
   const subtitle =
     history.length && maxAttempts > 0
@@ -74,8 +76,11 @@ export default function AttemptTimeline({
     <>
       <div className="panelHeader" style={{ marginTop: 0 }}>
         <h2 className="panelTitle">ATTEMPT TIMELINE</h2>
-        <span className="muted" style={{ fontSize: 12 }}>
-          {subtitle}
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+          {isExample ? <span className="examplePill">EXAMPLE</span> : null}
+          <span className="muted" style={{ fontSize: 12 }}>
+            {subtitle}
+          </span>
         </span>
       </div>
       {history.length ? (
