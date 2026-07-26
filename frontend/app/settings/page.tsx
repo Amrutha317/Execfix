@@ -55,12 +55,13 @@ export default function SettingsPage() {
         <div className="row" style={{ marginBottom: 14, gap: 12 }}>
           <div style={{ flex: 1, minWidth: 180 }}>
             <label htmlFor="default-model">Default model</label>
-            <input
+            <select
               id="default-model"
               value={settings.defaultModel}
               onChange={(e) => setSettings((s) => ({ ...s, defaultModel: e.target.value }))}
-              spellCheck={false}
-            />
+            >
+              <option value="gpt-5-mini">gpt-5-mini</option>
+            </select>
           </div>
           <div style={{ width: 160 }}>
             <label htmlFor="default-attempts">Default max attempts</label>

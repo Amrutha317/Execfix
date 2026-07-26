@@ -177,7 +177,9 @@ export default function DebugPage() {
           <div className="row">
             <div style={{ flex: 1, minWidth: 220 }}>
               <label htmlFor="model-input">Model</label>
-              <input id="model-input" value={model} onChange={(e) => setModel(e.target.value)} spellCheck={false} />
+              <select id="model-input" value={model} onChange={(e) => setModel(e.target.value)}>
+                <option value="gpt-5-mini">gpt-5-mini</option>
+              </select>
             </div>
             <div style={{ width: 160 }}>
               <label htmlFor="max-attempts">Max attempts</label>
