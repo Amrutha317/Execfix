@@ -508,6 +508,13 @@ details.attemptCard > summary::-webkit-details-marker {
   font-weight: 500;
 }
 
+.attemptErrorBlock {
+  color: var(--gh-red);
+  max-height: 140px;
+  overflow: auto;
+  margin: 0 0 4px;
+}
+
 .attemptBody .attemptSub {
   font-size: 10px;
   font-weight: 600;

@@ -20,7 +20,7 @@ def test_already_clean_code_terminates_immediately() -> None:
     with patch.object(dbg, "fix_code") as mock_fix:
         session = dbg.run_debug_session("print('hello')", max_attempts=3)
     assert session.success is True
-    assert session.attempts_used == 0
+    assert session.attempts_used == 1
     assert mock_fix.call_count == 0
     assert len(session.history) == 1
     assert session.history[0]["success"] is True
@@ -34,7 +34,7 @@ def test_agent_converges_when_llm_returns_a_valid_fix() -> None:
             max_attempts=3,
         )
     assert session.success is True
-    assert session.attempts_used == 1
+    assert session.attempts_used == 2
     assert mock_fix.call_count == 1
     assert "x[0]" in session.final_code
 
@@ -46,7 +46,7 @@ def test_agent_gives_up_when_llm_keeps_returning_garbage() -> None:
         session = dbg.run_debug_session("1/0", max_attempts=3)
     assert session.success is False
     assert session.attempts_used == 3
-    assert mock_fix.call_count == 3
+    assert mock_fix.call_count == 2
     assert session.final_exception_type == "ZeroDivisionError"
 
 

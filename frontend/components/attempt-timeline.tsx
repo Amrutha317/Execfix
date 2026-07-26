@@ -2,6 +2,11 @@
 
 import type { HistoryEntry } from "@/lib/types";
 
+function lastErrorLine(text: string) {
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+  return lines.length ? lines[lines.length - 1] : text;
+}
+
 function patchBody(text: string) {
   const lines = text.split("\n");
   const looksLikeDiff = lines.some((l) => l.startsWith("-") || l.startsWith("+"));
@@ -87,8 +92,14 @@ export default function AttemptTimeline({
                 <span className="attemptMeta">{((entry.duration_ms ?? 0) / 1000).toFixed(1)}s</span>
               </summary>
               <div className="attemptBody">
-                {entry.error ? <p className="attemptErrorLine">{entry.error.split("\n")[0]}</p> : null}
-                <div className="attemptSub">{entry.llm_output ? "PROPOSED PATCH" : "DETAIL"}</div>
+                {entry.error ? (
+                  <>
+                    <p className="attemptErrorLine">{lastErrorLine(entry.error)}</p>
+                    <div className="attemptSub">TRACEBACK</div>
+                    <pre className="attemptErrorBlock">{entry.error}</pre>
+                  </>
+                ) : null}
+                <div className="attemptSub">{entry.llm_output ? "PROPOSED PATCH" : "CODE"}</div>
                 {entry.llm_output ? patchBody(entry.llm_output) : <pre>{entry.code ?? ""}</pre>}
               </div>
             </details>

@@ -52,7 +52,7 @@ def debug_loop(
     while True:
         result = execute_code(state["code"], tests=state["tests"], timeout=state["timeout"])
         history_entry: HistoryEntry = {
-            "attempt": state["attempts"],
+            "attempt": state["attempts"] + 1,
             "code": state["code"],
             "success": result.success,
             "error": result.stderr,
@@ -72,7 +72,7 @@ def debug_loop(
 
         if result.success:
             return state
-        if state["attempts"] >= state["max_attempts"]:
+        if state["attempts"] + 1 >= state["max_attempts"]:
             return state
 
         fixed = fix_code(
@@ -102,7 +102,7 @@ def _run_code_node(state: DebugState) -> dict[str, Any]:
     history: list[HistoryEntry] = list(state.get("history", []))
     history.append(
         {
-            "attempt": state.get("attempts", 0),
+            "attempt": state.get("attempts", 0) + 1,
             "code": state["code"],
             "success": result.success,
             "error": result.stderr,
@@ -145,7 +145,7 @@ def _fix_code_node(state: DebugState) -> dict[str, Any]:
 def _router(state: DebugState) -> str:
     if state.get("success"):
         return "done"
-    if state.get("attempts", 0) >= state.get("max_attempts", 3):
+    if state.get("attempts", 0) + 1 >= state.get("max_attempts", 3):
         return "give_up"
     return "fix"
 
@@ -203,13 +203,14 @@ def run_debug_session(
         model=model,
     )
     final: DebugState = DebuggerAgent.invoke(seed)
+    history = list(final.get("history", []))
     return DebugSession(
         success=bool(final.get("success", False)),
-        attempts_used=int(final.get("attempts", 0)),
+        attempts_used=len(history),
         final_code=str(final.get("code", "")),
         original_code=str(final.get("original_code", code)),
         final_error=str(final.get("error", "")),
         final_exception_type=final.get("exception_type"),
-        history=list(final.get("history", [])),
+        history=history,
         state=final,
     )
