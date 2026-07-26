@@ -381,6 +381,21 @@ pre {
   background-color: var(--gh-canvas) !important;
 }
 
+.codeEditorPlaceholder {
+  position: absolute;
+  top: 8px;
+  left: 44px;
+  right: 12px;
+  margin: 0;
+  color: var(--gh-muted);
+  font-size: 12px;
+  line-height: 1.7;
+  font-family: var(--font-code), "JetBrains Mono", "Fira Code", Consolas, monospace;
+  pointer-events: none;
+  z-index: 1;
+  white-space: pre-wrap;
+}
+
 .codeEditorChrome .monaco-editor .view-lines,
 .codeEditorChrome .monaco-editor .line-numbers {
   font-family: var(--font-code), "JetBrains Mono", "Fira Code", Consolas, monospace !important;

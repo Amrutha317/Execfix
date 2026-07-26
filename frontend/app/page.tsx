@@ -133,7 +133,17 @@ export default function DebugPage() {
               <h2 className="panelTitle">TEST HARNESS</h2>
               <span className="optionalPill">optional</span>
             </div>
-            <CodeEditor label="" value={tests} onChange={setTests} rows={4} />
+            <CodeEditor
+              label=""
+              value={tests}
+              onChange={setTests}
+              rows={4}
+              placeholder={
+                "# Plain Python, appended after the code on the left and run in the\n" +
+                "# same file. Reference your functions/classes directly:\n" +
+                "assert get_item([1, 2, 3], 1) == 2"
+              }
+            />
           </div>
         </section>
 

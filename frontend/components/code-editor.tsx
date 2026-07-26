@@ -13,11 +13,12 @@ type Props = {
   value: string;
   onChange: (value: string) => void;
   rows?: number;
+  placeholder?: string;
 };
 
 const FONT_STACK = "'JetBrains Mono', 'Fira Code', Consolas, monospace";
 
-export default function CodeEditor({ label, value, onChange, rows = 16 }: Props) {
+export default function CodeEditor({ label, value, onChange, rows = 16, placeholder }: Props) {
   const lineHeightPx = Math.round(12 * 1.7);
   const heightPx = Math.max(96, rows * lineHeightPx + 16);
 
@@ -28,7 +29,12 @@ export default function CodeEditor({ label, value, onChange, rows = 16 }: Props)
   return (
     <div>
       {label ? <div className="codeEditorLabel">{label}</div> : null}
-      <div className="codeEditorChrome">
+      <div className="codeEditorChrome" style={{ position: "relative" }}>
+        {placeholder && !value ? (
+          <pre className="codeEditorPlaceholder" aria-hidden>
+            {placeholder}
+          </pre>
+        ) : null}
         <MonacoEditor
           height={heightPx}
           language="python"
