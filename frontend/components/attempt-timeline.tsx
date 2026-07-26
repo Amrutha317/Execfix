@@ -78,6 +78,22 @@ export default function AttemptTimeline({
           {subtitle}
         </span>
       </div>
+      {history.length ? (
+        <div className="statusLegend" aria-label="Attempt status legend">
+          <span className="statusLegendItem">
+            <span className="statusDot statusDot--success" />
+            Passed
+          </span>
+          <span className="statusLegendItem">
+            <span className="statusDot statusDot--error" />
+            Failed
+          </span>
+          <span className="statusLegendItem">
+            <span className="statusDot statusDot--patching" />
+            Patch proposed
+          </span>
+        </div>
+      ) : null}
       {!history.length ? (
         <p className="muted">No attempts yet. Run debug to see the timeline.</p>
       ) : (

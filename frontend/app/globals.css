@@ -245,6 +245,26 @@ pre {
   text-overflow: ellipsis;
 }
 
+.metaPill--interactive {
+  gap: 6px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.metaPill--interactive:hover {
+  border-color: var(--gh-accent);
+  color: var(--gh-text);
+}
+
+.metaPill__chevron {
+  font-size: 10px;
+  transition: transform 0.15s ease;
+}
+
+.metaPill__chevron--open {
+  transform: rotate(180deg);
+}
+
 .runBtn {
   display: inline-flex;
   align-items: center;
@@ -410,6 +430,40 @@ pre {
   border: 0.5px solid var(--gh-border);
   color: var(--gh-muted);
   background: var(--gh-canvas);
+}
+
+.statusLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 4px 0 10px;
+}
+
+.statusLegendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--gh-muted);
+}
+
+.statusDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.statusDot--success {
+  background: var(--gh-green-bright);
+}
+
+.statusDot--error {
+  background: var(--gh-red);
+}
+
+.statusDot--patching {
+  background: var(--gh-orange);
 }
 
 /* ——— Attempt cards ——— */
@@ -653,22 +707,8 @@ details.attemptCard > summary::-webkit-details-marker {
   overflow: hidden;
 }
 
-.settingsDrawer summary {
-  padding: 8px 12px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 12px;
-  color: var(--gh-muted);
-  list-style: none;
-}
-
-.settingsDrawer summary::-webkit-details-marker {
-  display: none;
-}
-
 .settingsDrawer .settingsBody {
-  padding: 0 12px 12px;
-  border-top: 0.5px solid var(--gh-border);
+  padding: 12px;
 }
 
 .settingsDrawer .row label {

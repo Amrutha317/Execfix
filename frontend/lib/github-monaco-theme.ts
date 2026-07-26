@@ -29,7 +29,7 @@ export function setupGithubDarkTheme(monaco: Monaco) {
     colors: {
       "editor.background": "#0d1117",
       "editor.foreground": "#e6edf3",
-      "editorLineNumber.foreground": "#484f58",
+      "editorLineNumber.foreground": "#7d8590",
       "editorLineNumber.activeForeground": "#8b949e",
       "editorCursor.foreground": "#58a6ff",
       "editor.selectionBackground": "#264f78",

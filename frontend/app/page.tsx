@@ -32,6 +32,7 @@ export default function DebugPage() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<DebugResponse | null>(null);
   const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     setActionsHost(document.getElementById("topbar-actions"));
@@ -85,9 +86,18 @@ export default function DebugPage() {
       {actionsHost
         ? createPortal(
             <div className="topbarActions">
-              <div className="metaPill" title="Model, attempts, and timeout for this run">
+              <button
+                type="button"
+                className="metaPill metaPill--interactive"
+                title="Click to change model, attempts, and timeout"
+                aria-expanded={settingsOpen}
+                onClick={() => setSettingsOpen((o) => !o)}
+              >
                 {model} · {maxAttempts} attempts · {timeout}s
-              </div>
+                <span className={`metaPill__chevron ${settingsOpen ? "metaPill__chevron--open" : ""}`} aria-hidden>
+                  ▾
+                </span>
+              </button>
               <button className="runBtn" type="button" onClick={onRun} disabled={loading}>
                 <span className="runBtn__pulseDot" aria-hidden />
                 {loading ? "Running..." : "Run debug"}
@@ -190,41 +200,42 @@ export default function DebugPage() {
         </div>
       </footer>
 
-      <details className="settingsDrawer">
-        <summary>Run settings</summary>
-        <div className="settingsBody">
-          <div className="row">
-            <div style={{ flex: 1, minWidth: 220 }}>
-              <label htmlFor="model-input">Model</label>
-              <select id="model-input" value={model} onChange={(e) => setModel(e.target.value)}>
-                <option value="gpt-5-mini">gpt-5-mini</option>
-              </select>
-            </div>
-            <div style={{ width: 160 }}>
-              <label htmlFor="max-attempts">Max attempts</label>
-              <input
-                id="max-attempts"
-                type="number"
-                min={1}
-                max={10}
-                value={maxAttempts}
-                onChange={(e) => setMaxAttempts(Number(e.target.value))}
-              />
-            </div>
-            <div style={{ width: 160 }}>
-              <label htmlFor="timeout-s">Timeout (s)</label>
-              <input
-                id="timeout-s"
-                type="number"
-                min={1}
-                max={120}
-                value={timeout}
-                onChange={(e) => setTimeoutSeconds(Number(e.target.value))}
-              />
+      {settingsOpen ? (
+        <div className="settingsDrawer settingsDrawer--open">
+          <div className="settingsBody">
+            <div className="row">
+              <div style={{ flex: 1, minWidth: 220 }}>
+                <label htmlFor="model-input">Model</label>
+                <select id="model-input" value={model} onChange={(e) => setModel(e.target.value)}>
+                  <option value="gpt-5-mini">gpt-5-mini</option>
+                </select>
+              </div>
+              <div style={{ width: 160 }}>
+                <label htmlFor="max-attempts">Max attempts</label>
+                <input
+                  id="max-attempts"
+                  type="number"
+                  min={1}
+                  max={10}
+                  value={maxAttempts}
+                  onChange={(e) => setMaxAttempts(Number(e.target.value))}
+                />
+              </div>
+              <div style={{ width: 160 }}>
+                <label htmlFor="timeout-s">Timeout (s)</label>
+                <input
+                  id="timeout-s"
+                  type="number"
+                  min={1}
+                  max={120}
+                  value={timeout}
+                  onChange={(e) => setTimeoutSeconds(Number(e.target.value))}
+                />
+              </div>
             </div>
           </div>
         </div>
-      </details>
+      ) : null}
     </>
   );
 }
