@@ -82,3 +82,40 @@ def test_tests_payload_is_executed_alongside_candidate() -> None:
         session = dbg.run_debug_session(candidate, tests=harness, max_attempts=2)
     assert session.success is True
     assert mock_fix.call_count == 0
+
+
+def test_stream_emits_attempt_updates_then_done() -> None:
+    fixed = "print('done')"
+    with patch.object(dbg, "fix_code", return_value=fixed):
+        events = list(dbg.stream_debug_session("raise ValueError('boom')", max_attempts=3))
+
+    assert [e["type"] for e in events] == ["attempt", "attempt", "attempt", "done"]
+
+    first, patched, second, done = events
+    assert first["entry"]["attempt"] == 1
+    assert first["entry"]["success"] is False
+    assert first["entry"]["llm_output"] is None
+
+    assert patched["entry"]["attempt"] == 1
+    assert patched["entry"]["llm_output"] == fixed
+
+    assert second["entry"]["attempt"] == 2
+    assert second["entry"]["success"] is True
+
+    assert done["success"] is True
+    assert done["attempts_used"] == 2
+    assert len(done["history"]) == 2
+
+
+def test_stream_matches_run_debug_session_for_same_input() -> None:
+    fixed = "x = 1 + 1\nprint(x)"
+    with patch.object(dbg, "fix_code", return_value=fixed):
+        session = dbg.run_debug_session("print(undefined_var)", max_attempts=3)
+    with patch.object(dbg, "fix_code", return_value=fixed):
+        events = list(dbg.stream_debug_session("print(undefined_var)", max_attempts=3))
+
+    done = events[-1]
+    assert done["type"] == "done"
+    assert done["success"] == session.success
+    assert done["attempts_used"] == session.attempts_used
+    assert done["final_code"] == session.final_code

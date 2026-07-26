@@ -6,11 +6,11 @@ import { createPortal } from "react-dom";
 import AttemptTimeline from "@/components/attempt-timeline";
 import CodeEditor from "@/components/code-editor";
 import ResultSummary from "@/components/result-summary";
-import { runDebug } from "@/lib/api";
+import { streamDebug } from "@/lib/api";
 import { EXAMPLE_CODE, EXAMPLE_RESULT } from "@/lib/example-run";
 import { addHistoryRun } from "@/lib/history";
 import { getSettings } from "@/lib/settings";
-import type { DebugResponse } from "@/lib/types";
+import type { DebugResponse, HistoryEntry } from "@/lib/types";
 
 function totalElapsedMs(result: DebugResponse | null) {
   if (!result?.history?.length) return null;
@@ -29,6 +29,7 @@ export default function DebugPage() {
   const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [runningElapsedMs, setRunningElapsedMs] = useState(0);
+  const [liveHistory, setLiveHistory] = useState<HistoryEntry[]>([]);
 
   useEffect(() => {
     setActionsHost(document.getElementById("topbar-actions"));
@@ -61,23 +62,41 @@ export default function DebugPage() {
   async function onRun() {
     setLoading(true);
     setError(null);
+    setResult(null);
+    setLiveHistory([]);
     try {
-      const response = await runDebug({
-        code,
-        tests: tests.trim() || undefined,
-        max_attempts: maxAttempts,
-        timeout,
-        model: model.trim() || undefined
-      });
-      setResult(response);
-      addHistoryRun({
-        code,
-        tests: tests.trim() || undefined,
-        model: model.trim() || "default",
-        maxAttempts,
-        timeout,
-        result: response
-      });
+      await streamDebug(
+        {
+          code,
+          tests: tests.trim() || undefined,
+          max_attempts: maxAttempts,
+          timeout,
+          model: model.trim() || undefined
+        },
+        {
+          onAttempt: (entry) => {
+            setLiveHistory((prev) => {
+              const idx = prev.findIndex((p) => p.attempt === entry.attempt);
+              if (idx === -1) return [...prev, entry];
+              const next = [...prev];
+              next[idx] = entry;
+              return next;
+            });
+          },
+          onDone: (response) => {
+            setResult(response);
+            addHistoryRun({
+              code,
+              tests: tests.trim() || undefined,
+              model: model.trim() || "default",
+              maxAttempts,
+              timeout,
+              result: response
+            });
+          },
+          onError: (message) => setError(message)
+        }
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -171,12 +190,16 @@ export default function DebugPage() {
           )}
           <div style={{ flex: 1, minHeight: 0 }}>
             {loading ? (
-              <>
-                <div className="panelHeader" style={{ marginTop: 0 }}>
-                  <h2 className="panelTitle">ATTEMPT TIMELINE</h2>
-                </div>
-                <p className="muted">Waiting for the first attempt to finish...</p>
-              </>
+              liveHistory.length ? (
+                <AttemptTimeline history={liveHistory} maxAttempts={maxAttempts} />
+              ) : (
+                <>
+                  <div className="panelHeader" style={{ marginTop: 0 }}>
+                    <h2 className="panelTitle">ATTEMPT TIMELINE</h2>
+                  </div>
+                  <p className="muted">Waiting for the first attempt to finish...</p>
+                </>
+              )
             ) : (
               <AttemptTimeline
                 history={(result ?? EXAMPLE_RESULT).history}

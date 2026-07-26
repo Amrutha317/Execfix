@@ -6,14 +6,14 @@ import dataclasses
 import json
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 # Ensure project root imports work when running uvicorn from backend/.
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from agent.debugger import run_debug_session
+from agent.debugger import run_debug_session, stream_debug_session
 from agent.llm import DEFAULT_MODEL
 from eval.evaluator import _summarize, evaluate_problem
 from eval.quixbugs_loader import iter_problems
@@ -44,6 +44,29 @@ def run_debug(
         "final_exception_type": session.final_exception_type,
         "history": session.history,
     }
+
+
+def stream_debug(
+    *,
+    code: str,
+    tests: str | None,
+    max_attempts: int,
+    timeout: float,
+    model: str | None,
+) -> Iterator[str]:
+    """Run a debug session, yielding Server-Sent Events as attempts complete."""
+    try:
+        for event in stream_debug_session(
+            code=code,
+            tests=tests,
+            max_attempts=max_attempts,
+            timeout=timeout,
+            model=model,
+        ):
+            yield f"data: {json.dumps(event)}\n\n"
+    except Exception as exc:  # noqa: BLE001
+        error_event = {"type": "error", "detail": f"{type(exc).__name__}: {exc}"}
+        yield f"data: {json.dumps(error_event)}\n\n"
 
 
 def run_eval(

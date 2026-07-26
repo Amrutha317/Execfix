@@ -7,6 +7,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 
 # Ensure project root imports work when running uvicorn from backend/.
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -14,7 +15,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.schemas import DebugRequest, DebugResponse, EvalRunRequest, EvalRunResponse
-from app.service import run_debug, run_eval
+from app.service import run_debug, run_eval, stream_debug
 
 
 app = FastAPI(
@@ -52,6 +53,21 @@ def debug_code(payload: DebugRequest) -> DebugResponse:
         raise HTTPException(
             status_code=500, detail=f"{type(exc).__name__}: {exc}"
         ) from exc
+
+
+@app.post("/debug/stream")
+def debug_code_stream(payload: DebugRequest) -> StreamingResponse:
+    return StreamingResponse(
+        stream_debug(
+            code=payload.code,
+            tests=payload.tests,
+            max_attempts=payload.max_attempts,
+            timeout=payload.timeout,
+            model=payload.model,
+        ),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 @app.post("/eval/run", response_model=EvalRunResponse)

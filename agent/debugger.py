@@ -17,7 +17,7 @@ control flow explicit and gives us per-node observability for the demo UI.
 from __future__ import annotations
 
 import dataclasses
-from typing import Any
+from typing import Any, Iterator
 
 from langgraph.graph import END, StateGraph
 
@@ -214,3 +214,50 @@ def run_debug_session(
         history=history,
         state=final,
     )
+
+
+def stream_debug_session(
+    code: str,
+    *,
+    tests: str | None = None,
+    max_attempts: int = 3,
+    timeout: float = 10.0,
+    model: str | None = None,
+) -> Iterator[dict[str, Any]]:
+    """Invoke the compiled LangGraph agent, yielding progress as it happens.
+
+    Yields ``{"type": "attempt", "entry": HistoryEntry}`` each time the most
+    recent history entry changes (a run just finished, or an LLM patch was
+    just attached to it), then a final ``{"type": "done", ...}`` matching
+    :class:`DebugSession`'s fields once the graph terminates.
+    """
+    seed = initial_state(
+        code=code,
+        tests=tests,
+        max_attempts=max_attempts,
+        timeout=timeout,
+        model=model,
+    )
+    final: DebugState = seed
+    last_sent: HistoryEntry | None = None
+    for step in DebuggerAgent.stream(seed, stream_mode="values"):
+        final = step
+        history = step.get("history", [])
+        if not history:
+            continue
+        latest = history[-1]
+        if latest != last_sent:
+            yield {"type": "attempt", "entry": latest}
+            last_sent = latest
+
+    history = list(final.get("history", []))
+    yield {
+        "type": "done",
+        "success": bool(final.get("success", False)),
+        "attempts_used": len(history),
+        "final_code": str(final.get("code", "")),
+        "original_code": str(final.get("original_code", code)),
+        "final_error": str(final.get("error", "")),
+        "final_exception_type": final.get("exception_type"),
+        "history": history,
+    }

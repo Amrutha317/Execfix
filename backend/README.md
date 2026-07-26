@@ -13,7 +13,10 @@ uvicorn app.main:app --reload --port 8000
 ## Endpoints
 
 - `GET /health` -> health check
-- `POST /debug` -> run one debug session
+- `POST /debug` -> run one debug session, return the full result at once
+- `POST /debug/stream` -> run one debug session, streaming Server-Sent Events
+  as each attempt completes (`{"type":"attempt","entry":...}`, then
+  `{"type":"done",...}` or `{"type":"error","detail":...}`)
 - `POST /eval/run` -> run evaluator synchronously and return summary + results
 
 ## Example `/debug` payload
