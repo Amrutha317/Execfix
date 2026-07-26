@@ -1,5 +1,7 @@
 # Autonomous Code Debugging Agent
 
+[![CI](https://github.com/Amrutha317/Execfix/actions/workflows/ci.yml/badge.svg)](https://github.com/Amrutha317/Execfix/actions/workflows/ci.yml)
+
 A LangGraph-driven Python debugging agent that **executes code in a hardened
 subprocess sandbox**, captures real runtime errors, and iteratively repairs the
 program with OpenAI until it passes a test harness or a retry budget is hit.
