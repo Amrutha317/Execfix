@@ -21,7 +21,7 @@ from typing import Any, Iterator
 
 from langgraph.graph import END, StateGraph
 
-from agent.executor import execute_code
+from agent.executor import run_sandboxed
 from agent.llm import fix_code
 from agent.state import DebugState, HistoryEntry, initial_state
 
@@ -50,7 +50,7 @@ def debug_loop(
     )
 
     while True:
-        result = execute_code(state["code"], tests=state["tests"], timeout=state["timeout"])
+        result = run_sandboxed(state["code"], tests=state["tests"], timeout=state["timeout"])
         history_entry: HistoryEntry = {
             "attempt": state["attempts"] + 1,
             "code": state["code"],
@@ -94,7 +94,7 @@ def debug_loop(
 
 
 def _run_code_node(state: DebugState) -> dict[str, Any]:
-    result = execute_code(
+    result = run_sandboxed(
         state["code"],
         tests=state.get("tests"),
         timeout=state.get("timeout", 10.0),

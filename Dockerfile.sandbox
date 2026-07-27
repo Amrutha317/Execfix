@@ -1,0 +1,6 @@
+# Minimal image for the Docker sandbox backend (agent/executor_docker.py).
+# Build once:
+#   docker build -t debugger-sandbox:latest -f Dockerfile.sandbox .
+FROM python:3.12-slim
+
+WORKDIR /sandbox

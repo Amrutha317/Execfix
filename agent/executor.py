@@ -312,6 +312,36 @@ def execute_code(
 # --------------------------------------------------------------------------- #
 
 
+# --------------------------------------------------------------------------- #
+# Backend dispatch                                                            #
+# --------------------------------------------------------------------------- #
+
+
+def _resolve_backend() -> str:
+    return os.environ.get("SANDBOX_BACKEND", "subprocess").strip().lower()
+
+
+def run_sandboxed(
+    code: str,
+    *,
+    tests: str | None = None,
+    timeout: float = DEFAULT_TIMEOUT_SECONDS,
+    extra_blocked: Iterable[str] | None = None,
+) -> ExecutionResult:
+    """Run ``code`` through the sandbox backend selected by ``SANDBOX_BACKEND``.
+
+    ``subprocess`` (default) uses :func:`execute_code` directly. ``docker``
+    additionally isolates the run in a hardened, network-less container --
+    see ``agent/executor_docker.py`` and the README's Sandbox section for
+    what that buys you over the bare subprocess backend.
+    """
+    if _resolve_backend() == "docker":
+        from agent.executor_docker import execute_code_docker
+
+        return execute_code_docker(code, tests=tests, timeout=timeout, extra_blocked=extra_blocked)
+    return execute_code(code, tests=tests, timeout=timeout, extra_blocked=extra_blocked)
+
+
 def _scan(code: str, blocked: Iterable[str]) -> tuple[str | None, str | None]:
     """Variant of :func:`scan_for_violations` parameterized by blocklist."""
     try:

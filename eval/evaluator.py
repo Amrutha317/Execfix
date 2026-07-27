@@ -23,7 +23,7 @@ from typing import Any
 
 from agent.debugger import run_debug_session
 from agent.llm import DEFAULT_MODEL
-from agent.executor import execute_code
+from agent.executor import run_sandboxed
 from eval.quixbugs_loader import (
     QuixBugsProblem,
     iter_problems,
@@ -147,7 +147,7 @@ def evaluate_problem(
 
     # Quick sanity check -- does the harness pass on the *correct* solution?
     # If not, our harness is buggy; skip the problem so we don't blame the agent.
-    sanity = execute_code(problem.correct_code, tests=harness, timeout=timeout)
+    sanity = run_sandboxed(problem.correct_code, tests=harness, timeout=timeout)
     if not sanity.success:
         return ProblemResult(
             name=problem.name,

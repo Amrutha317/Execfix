@@ -213,6 +213,25 @@ this project's threat model (repairing known, benchmarked programs)
 justifies, so it's treated here as a documented scope boundary rather than a
 gap to silently work around.
 
+### Optional: Docker-hardened backend
+
+`agent/executor_docker.py` implements that container-hardening baseline as an
+opt-in second backend, so the containerized path is a real, testable
+capability rather than just a README claim. Same AST pre-filter, but the
+candidate runs in a throwaway container with `--network none --read-only
+--cap-drop ALL --security-opt no-new-privileges --pids-limit 64 --memory
+256m --cpus 0.5`, as a non-root user, with the sandbox dir mounted read-only.
+
+```bash
+docker build -t debugger-sandbox:latest -f Dockerfile.sandbox .
+SANDBOX_BACKEND=docker python main.py path/to/buggy.py
+```
+
+Defaults to the plain subprocess backend (`SANDBOX_BACKEND` unset or
+`subprocess`) so cloning and running the project needs no Docker install.
+`tests/test_executor_docker.py` exercises the Docker backend directly and
+skips automatically if Docker or the image isn't available.
+
 ## Tests
 
 ```bash
