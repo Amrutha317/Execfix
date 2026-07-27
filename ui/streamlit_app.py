@@ -191,14 +191,15 @@ if run_clicked:
 
     with summary_slot.container():
         st.markdown("---")
+        repairs_used = max(0, session.attempts_used - 1)
         if session.success:
             st.success(
-                f"Fixed in {session.attempts_used} attempt(s) "
+                f"Fixed in {repairs_used} repair(s) "
                 f"({len(session.history)} total runs)."
             )
         else:
             st.error(
-                f"Gave up after {session.attempts_used} attempt(s). "
+                f"Gave up after {repairs_used} repair(s). "
                 f"Final exception: {session.final_exception_type or 'unknown'}."
             )
         st.markdown("**Final source code**")

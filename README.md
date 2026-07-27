@@ -133,22 +133,29 @@ python -m eval.evaluator --only gcd bucketsort possible_change
 Outputs `eval/results/run_<timestamp>.json` (per-program detail) and
 `run_<timestamp>.md` (headline pass-rate + per-program table).
 
-A run looks like:
+A real run against `gpt-5-mini` (3-attempt budget), 2026-07-28:
 
 ```
 Evaluating 31 QuixBugs problems...
-[1/31] bitcount... PASS in 1 attempt(s)
-[2/31] bucketsort... PASS in 1 attempt(s)
+[1/31] bitcount... PASS in 1 repair(s)
+[2/31] bucketsort... PASS in 1 repair(s)
 ...
-[31/31] wrap... PASS in 2 attempt(s)
+[6/31] knapsack... SKIP (harness_fails_on_reference)
+...
+[12/31] max_sublist_sum... PASS in 2 repair(s)
+...
+[31/31] wrap... PASS in 1 repair(s)
 
-Pass rate: 27/29 (93.1%)
-Wrote eval/results/run_20260428_001000.json
-Wrote eval/results/run_20260428_001000.md
+Pass rate: 29/29 (100.0%)
 ```
 
-> Pass-rates depend on the model and retry budget. Numbers above are
-> illustrative -- paste your own here after running the eval.
+"Repairs" = LLM fix calls (the initial run that surfaces the error isn't a
+repair). 28 of the 29 evaluated programs were fixed on the very first repair
+call; `max_sublist_sum` needed a second. `knapsack` and `levenshtein` are
+skipped as documented below.
+
+> Pass-rates depend on the model and retry budget -- re-run the eval and
+> paste your own numbers if you change either.
 
 ### Eval coverage
 

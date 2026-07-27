@@ -120,6 +120,11 @@ class ProblemResult:
     error_excerpt: str
     skipped_reason: str | None = None
 
+    @property
+    def repairs_used(self) -> int:
+        """LLM fix calls made (the first run just surfaces the error, no API call)."""
+        return max(0, self.attempts_used - 1)
+
 
 def _short_error(text: str, limit: int = 240) -> str:
     if not text:
@@ -186,8 +191,8 @@ def _summarize(results: list[ProblemResult]) -> dict[str, Any]:
     evaluated = [r for r in results if r.skipped_reason is None]
     passed = [r for r in evaluated if r.passed]
     pass_rate = len(passed) / len(evaluated) if evaluated else 0.0
-    avg_attempts = (
-        sum(r.attempts_used for r in passed) / len(passed) if passed else 0.0
+    avg_repairs = (
+        sum(r.repairs_used for r in passed) / len(passed) if passed else 0.0
     )
     return {
         "total": len(results),
@@ -195,7 +200,7 @@ def _summarize(results: list[ProblemResult]) -> dict[str, Any]:
         "skipped": len(results) - len(evaluated),
         "passed": len(passed),
         "pass_rate": pass_rate,
-        "avg_attempts_when_passed": avg_attempts,
+        "avg_repairs_when_passed": avg_repairs,
     }
 
 
@@ -217,7 +222,9 @@ def write_reports(
         "model": model,
         "max_attempts": max_attempts,
         "summary": summary,
-        "results": [dataclasses.asdict(r) for r in results],
+        "results": [
+            {**dataclasses.asdict(r), "repairs_used": r.repairs_used} for r in results
+        ],
     }
     json_path.write_text(json.dumps(json_payload, indent=2), encoding="utf-8")
 
@@ -233,10 +240,13 @@ def write_reports(
     if summary["skipped"]:
         lines.append(f"- Skipped (harness sanity failed): {summary['skipped']}")
     lines.append(
-        f"- Avg attempts when passed: {summary['avg_attempts_when_passed']:.2f}"
+        f"- Avg repairs when passed: {summary['avg_repairs_when_passed']:.2f}"
+    )
+    lines.append(
+        "- \"Repairs\" = LLM fix calls; the first run just surfaces the error and isn't a repair."
     )
     lines.append("")
-    lines.append("| Program | Result | Attempts | Final exception |")
+    lines.append("| Program | Result | Repairs | Final exception |")
     lines.append("|---|---|---|---|")
     for r in results:
         if r.skipped_reason:
@@ -246,7 +256,7 @@ def write_reports(
         else:
             verdict = "FAIL"
         exc = r.final_exception_type or "-"
-        lines.append(f"| {r.name} | {verdict} | {r.attempts_used} | {exc} |")
+        lines.append(f"| {r.name} | {verdict} | {r.repairs_used} | {exc} |")
     md_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
     return json_path, md_path
@@ -304,7 +314,7 @@ def main() -> int:
         if result.skipped_reason:
             print(f"SKIP ({result.skipped_reason})")
         elif result.passed:
-            print(f"PASS in {result.attempts_used} attempt(s)")
+            print(f"PASS in {result.repairs_used} repair(s)")
         else:
             print(f"FAIL ({result.final_exception_type or 'wrong output'})")
 
