@@ -2,9 +2,10 @@
 
 [![CI](https://github.com/Amrutha317/Execfix/actions/workflows/ci.yml/badge.svg)](https://github.com/Amrutha317/Execfix/actions/workflows/ci.yml)
 
-A LangGraph-driven Python debugging agent that **executes code in a hardened
-subprocess sandbox**, captures real runtime errors, and iteratively repairs the
-program with OpenAI until it passes a test harness or a retry budget is hit.
+A LangGraph-driven Python debugging agent that **executes code in a layered
+subprocess sandbox (AST blocklist + isolated interpreter)**, captures real
+runtime errors, and iteratively repairs the program with OpenAI until it
+passes a test harness or a retry budget is hit.
 
 It is **not** a "send code, get fix" wrapper:
 
@@ -65,7 +66,7 @@ State flows through a single `TypedDict` (`agent/state.py`):
 ```
 .
 +-- agent/
-|   +-- executor.py          # Hardened subprocess sandbox + AST blocklist
+|   +-- executor.py          # Subprocess sandbox: AST blocklist + isolated interpreter
 |   +-- llm.py               # OpenAI client + fix_code()
 |   +-- prompts.py           # System + user prompt templates
 |   +-- state.py             # DebugState TypedDict
@@ -197,11 +198,20 @@ Before that, an `ast.NodeVisitor` rejects programs that:
 - Use `__import__('<blocked>')` or `eval()` / `exec()` to dynamically reach a
   blocked module.
 
-This is best-effort sandboxing for an LLM coding loop. **It is NOT
-adversarial-grade isolation** -- a determined attacker who can see the source
-can still craft AST-friendly payloads that load arbitrary stdlib at runtime.
-For untrusted user input in production, wrap the executor in Docker
-(`--network=none --read-only`) or gVisor instead.
+This is **layer 1**: a fast, explainable pre-filter appropriate for this
+project's actual threat model -- repairing known, benchmarked QuixBugs
+programs, not running arbitrary code from strangers. It is deliberately not
+adversarial-grade isolation: a determined attacker who can see the source can
+still craft AST-friendly payloads that load arbitrary stdlib at runtime,
+since static analysis can only catch what it recognizes.
+
+For untrusted input at production scale, container-level hardening (dropped
+capabilities, `--network none`, read-only rootfs) is a reasonable baseline;
+true isolation for adversarial code uses microVMs (Firecracker, gVisor)
+rather than a shared-kernel sandbox. That's a heavier operational lift than
+this project's threat model (repairing known, benchmarked programs)
+justifies, so it's treated here as a documented scope boundary rather than a
+gap to silently work around.
 
 ## Tests
 
